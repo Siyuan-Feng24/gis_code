@@ -9,6 +9,3 @@ print('Hi there!')
 
 library(usethis)
 use_git()
-install.packages('gitcreds')
-library(gitcreds)
-gitcreds_set()
