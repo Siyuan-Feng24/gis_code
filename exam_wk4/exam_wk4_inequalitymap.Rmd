@@ -1,0 +1,66 @@
+---
+title: "exam_wk4_inequalitymap"
+author: "Siyuan"
+date: "2024-10-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include=FALSE)
+```
+
+## install 'countrycode' package
+
+```{r include=FALSE}
+install.packages("countrycode")
+```
+
+## read data
+
+```{r}
+library(here)
+library(sf)
+
+inequal_2010 <- read.csv(here('exam_wk4', 'raw_data_wk4', 'hdr-data_2010.csv'))
+inequal_2019 <- read.csv(here('exam_wk4', 'raw_data_wk4', 'hdr-data_2019.csv'))
+shp_path <- here('exam_wk4', 'raw_data_wk4', 
+                       'World_Countries_(Generalized)_2402777631520798174',
+                       'World_Countries_Generalized.shp')
+worldmap <- st_read(shp_path)
+
+# head(inequal_2010)
+# print(worldmap)
+```
+
+## delete unnecessary data from csv.
+
+```{r}
+library(dplyr)
+
+onlyineq_2010 <- inequal_2010 %>% 
+  filter(index == 'Gender Inequality Index', 
+         indicator == 'Gender Inequality Index (value)') %>%
+  select(-note)
+
+onlyineq_2019 <- inequal_2019 %>% 
+  filter(index == 'Gender Inequality Index', 
+         indicator == 'Gender Inequality Index (value)') %>%
+  select(-note)
+
+write.csv(onlyineq_2010, here('exam_wk4', 
+                              'raw_data_wk4', 
+                              'onlyinequal_2010.csv'), 
+          row.names = FALSE)
+write.csv(onlyineq_2019, here('exam_wk4', 
+                              'raw_data_wk4', 
+                              'onlyinequal_2019.csv'), 
+          row.names = FALSE)
+head(onlyineq_2010)
+```
+
+## add *difference btw 2010&2019* and *newISO* into csv.
+
+```{r}
+
+```
+
