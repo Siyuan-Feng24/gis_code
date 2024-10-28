@@ -29,7 +29,7 @@ shp_path <- here('exam_wk4', 'raw_data_wk4',
 worldmap <- st_read(shp_path)
 
 # head(inequal_2010)
-# print(worldmap)
+# head(worldmap)
 ```
 
 ## delete unnecessary data from csv.
@@ -61,6 +61,41 @@ head(onlyineq_2010)
 ## add *difference btw 2010&2019* and *newISO* into csv.
 
 ```{r}
+library(countrycode)
 
+onlyineq_2010 <- onlyineq_2010 %>%
+  left_join(onlyineq_2019 %>% select(countryIsoCode, value), 
+            by = 'countryIsoCode',
+            suffix = c('', '_2019')) %>%
+  mutate(value_2019 = value_2019) 
+
+onlyineq_2010 <- onlyineq_2010 %>%
+  mutate(differ = round(value_2019 - value, 3))
+
+onlyineq_2010 <- onlyineq_2010 %>%
+  mutate(newISO = countrycode(countryIsoCode, origin = 'iso3c', destination = 'iso2c'))
+```
+
+## merge csv. and shp by ISO
+
+```{r}
+ineqmap <- worldmap %>%
+  left_join(onlyineq_2010 %>% select(newISO, differ), 
+            by = c('ISO' = 'newISO')) 
+head(ineqmap)
+```
+
+## plot
+
+```{r}
+library(ggplot2)
+
+ggplot(data = ineqmap) +
+  geom_sf(aes(fill = differ), color = "black") +  # fill color by 'differ'
+  scale_fill_gradient(low = "darkblue", high = "lightblue", na.value = "grey50") + 
+  labs(title = "Difference in Gender Inequality Index (2019 - 2010)",
+       fill = "Difference") + 
+  theme_minimal() +  # 使用简约主题
+  theme(plot.title = element_text(hjust = 0.5)) 
 ```
 
