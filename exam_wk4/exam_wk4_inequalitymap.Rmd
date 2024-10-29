@@ -22,6 +22,7 @@ library(here)
 library(sf)
 
 inequal_2010 <- read.csv(here('exam_wk4', 'raw_data_wk4', 'hdr-data_2010.csv'))
+# 老师增加：locale = local(encoding = 'latin1'), na = '', skip=0)
 inequal_2019 <- read.csv(here('exam_wk4', 'raw_data_wk4', 'hdr-data_2019.csv'))
 shp_path <- here('exam_wk4', 'raw_data_wk4', 
                        'World_Countries_(Generalized)_2402777631520798174',
@@ -40,12 +41,12 @@ library(dplyr)
 onlyineq_2010 <- inequal_2010 %>% 
   filter(index == 'Gender Inequality Index', 
          indicator == 'Gender Inequality Index (value)') %>%
-  select(-note)
+  # select(-note)
 
 onlyineq_2019 <- inequal_2019 %>% 
   filter(index == 'Gender Inequality Index', 
          indicator == 'Gender Inequality Index (value)') %>%
-  select(-note)
+  # select(-note)
 
 write.csv(onlyineq_2010, here('exam_wk4', 
                               'raw_data_wk4', 
@@ -73,10 +74,11 @@ onlyineq_2010 <- onlyineq_2010 %>%
   mutate(differ = round(value_2019 - value, 3))
 
 onlyineq_2010 <- onlyineq_2010 %>%
-  mutate(newISO = countrycode(countryIsoCode, origin = 'iso3c', destination = 'iso2c'))
+  mutate(newISO = countrycode(countryIsoCode, 
+                              origin = 'iso3c', destination = 'iso2c'))
 ```
 
-## merge csv. and shp by ISO
+## merge csv. and shp by ISO 注意不要根据字符串匹配，人们写文字的习惯不一样（e.g. University of AAA v.s. AAA University
 
 ```{r}
 ineqmap <- worldmap %>%
