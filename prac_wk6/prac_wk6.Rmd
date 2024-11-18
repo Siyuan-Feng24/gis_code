@@ -1,30 +1,78 @@
----
-title: "prac_wk6"
-author: "Siyuan"
-date: "2024-11-12"
-output: html_document
----
+# 06\_
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+## Library
+
+```{r}
+library(spatstat) # 分析空间点模式
+library(stringr) # 隶属于 tidyverse 系列
+library(tidyverse)
+library(here)
+library(sp)
+library(tmap)
+library(sf)
+library(tmaptools)
+
 ```
 
-## R Markdown
+## Read .shp, filter \^E09
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
+LondonBoroughs <- st_read(here::here('prac_wk6',
+                                     'statistical_gis_boundaries_london', 
+                                     'ESRI', 
+                                     'London_Borough_Excluding_MHW.shp'))
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+# head(LondonBoroughs)
 ```
 
-## Including Plots
+```{r}
+BoroughMap <- LondonBoroughs %>% 
+  dplyr::filter(str_detect(GSS_CODE, '^E09')) %>%  # str_detect来自stringr, E09指London Boroughs
+  st_transform(., 27700) # 转换CRS为英国国家投影。后面载入的默认用相同的CRS。
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+qtm(BoroughMap) # qtm来自tmap包
+# summary(BoroughMap)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Read Blue Plaque point
+
+```{r}
+BluePlaques <- st_read("https://s3.eu-west-2.amazonaws.com/openplaques/open-plaques-london-2018-04-08.geojson")
+
+BluePlaques <- st_transform(BluePlaques, st_crs(BoroughMap)) # 转换到同上的坐标系，投影也同时变
+
+# summary(BluePlaques)
+```
+
+## Plot base map and points
+
+```{r}
+tmap_mode('plot')
+tm_shape(BoroughMap) + 
+  tm_polygons(col = NA, alpha = 0.5) + # col = NA 不填充多边形颜色
+  tm_shape(BluePlaques) + 
+  tm_dots(col = 'blue')
+```
+
+oops, some points outside the boundaries, then ...
+
+## Clean
+
+```{r}
+# 删除重复行
+BluePlaques <- distinct(BluePlaques)
+
+# 保留伦敦以内的点，法1
+BluePlaquesSub <- BluePlaques[BoroughMap,]
+
+# 保留伦敦以内的点，法2
+# intersect_indices <- st_intersects(BoroughMap, BluePlaques)
+
+# 检查是否还有溢出点
+tm_shape(BoroughMap) + 
+  tm_polygons(col = NA, alpha = 0.5) + # col = NA 不填充多边形颜色
+  tm_shape(BluePlaquesSub) + 
+  tm_dots(col = 'blue')
+```
+
+这里只是一种相交方式，还有很多其他做法。
